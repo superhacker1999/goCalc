@@ -132,18 +132,34 @@ func romanToArabic(roman string) int {
 	return result
 }
 
-func getNumbers(code validationCode, input string) (int, int) {
+func getNumbers(code validationCode, input string) (int, int, error) {
 	var num1 int
 	var num2 int
 
 	if code == arabic {
-		num1, _ = strconv.Atoi(input[0:strings.IndexByte(input, ' ')])
-		num2, _ = strconv.Atoi(input[strings.LastIndexByte(input, ' ')+1:])
+		index := strings.IndexByte(input, ' ')
+		if index == -1 {
+			return 0, 0, fmt.Errorf("invalid input")
+		}
+		num1, _ = strconv.Atoi(input[0:index])
+		index = strings.LastIndexByte(input, ' ') + 1
+		if index == -1 {
+			return 0, 0, fmt.Errorf("invalid input")
+		}
+		num2, _ = strconv.Atoi(input[index:])
 	} else {
-		num1 = romanToArabic(input[0:strings.IndexByte(input, ' ')])
-		num2 = romanToArabic(input[strings.LastIndexByte(input, ' ')+1:])
+		index := strings.IndexByte(input, ' ')
+		if index == -1 {
+			return 0, 0, fmt.Errorf("invalid input")
+		}
+		num1 = romanToArabic(input[0:index])
+		index = strings.LastIndexByte(input, ' ') + 1
+		if index == -1 {
+			return 0, 0, fmt.Errorf("invalid input")
+		}
+		num2 = romanToArabic(input[index:])
 	}
-	return num1, num2
+	return num1, num2, nil
 }
 
 func getOperation(input string) operationCode {
@@ -191,7 +207,11 @@ func main() {
 			fmt.Println("Experssion is invalid : " + validationCode.String() + exitMsg)
 			continue
 		}
-		num1, num2 := getNumbers(validationCode, input)
+		num1, num2, err := getNumbers(validationCode, input)
+		if err != nil {
+			fmt.Println(err.Error() + exitMsg)
+			continue
+		}
 		operation := getOperation(input)
 		result := applyOperation(operation, num1, num2)
 		fmt.Print("Result is : ")
