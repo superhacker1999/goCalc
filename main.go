@@ -47,14 +47,25 @@ func ensureValidInput(input string) validationCode {
 	hasArabicNumerals := false
 	hasRomanNumerals := false
 	hasIncorrectSymbol := false
+	spaceCounter := 0
+	operationCounter := 0
 	for _, char := range input {
 		if char >= '0' && char <= '9' {
 			hasArabicNumerals = true
 		} else if char == 'I' || char == 'V' || char == 'X' {
 			hasRomanNumerals = true
-		} else if !(char == ' ' || char == '*' || char == '/' || char == '+' || char == '-') {
+		} else if char == ' ' || char == '*' || char == '/' || char == '+' || char == '-' {
+			if char == ' ' {
+				spaceCounter++
+			} else {
+				operationCounter++
+			}
+		} else {
 			hasIncorrectSymbol = true
 		}
+	}
+	if spaceCounter > 2 || operationCounter > 1 {
+		return invalid
 	}
 	if hasIncorrectSymbol {
 		return incorrectSymbol
@@ -159,6 +170,9 @@ func getNumbers(code validationCode, input string) (int, int, error) {
 		}
 		num2 = romanToArabic(input[index:])
 	}
+	if num1 > 10 || num2 > 10 {
+		return 0, 0, fmt.Errorf("Incorrect input, numbers must be in range of 1 - 10")
+	}
 	return num1, num2, nil
 }
 
@@ -203,13 +217,13 @@ func main() {
 		scanner.Scan()
 		input := scanner.Text()
 		validationCode := ensureValidInput(input)
-		if validationCode > invalid {
-			fmt.Println("Experssion is invalid : " + validationCode.String() + exitMsg)
+		if validationCode >= invalid {
+			panic("Experssion is invalid : " + validationCode.String())
 			continue
 		}
 		num1, num2, err := getNumbers(validationCode, input)
 		if err != nil {
-			fmt.Println(err.Error() + exitMsg)
+			panic(err.Error())
 			continue
 		}
 		operation := getOperation(input)
